@@ -23,6 +23,23 @@ Puppet::Type.type(:group).provide :groupadd, :parent => Puppet::Provider::NameSe
     super
   end
 
+  def self.parse_etc_files(filename)
+    # parse /etc/group or /etc/passwd to get
+    # group or user names
+    File.open(filename).each_line.map do |line|
+      line.split(":")[0]
+    end
+  rescue => err
+    self.fail("Error reading #{filename}: #{err.inspect}")
+  end
+
+  def self.instances
+    File.open('/etc/group').each_line.map do |line|
+      g = line.split(":")
+      new(:name => g[0], :members => g[3].chomp.split(','), :ensure => :present)
+    end
+  end
+
   def gid
     return localgid if @resource.forcelocal?
     get(:gid)

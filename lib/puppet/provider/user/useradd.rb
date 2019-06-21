@@ -50,6 +50,12 @@ Puppet::Type.type(:user).provide :useradd, :parent => Puppet::Provider::NameServ
     super
   end
 
+  def self.instances
+    Puppet::Type.type(:group).provider(:groupadd).parse_etc_files("/etc/passwd").map do |user|
+      new(:name => user, :ensure => :present)
+    end
+  end
+
   def uid
      return localuid if @resource.forcelocal?
      get(:uid)
